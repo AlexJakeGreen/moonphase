@@ -1,0 +1,8 @@
+{
+    "uuid": "moonphase@alexjakegreen.github.io",
+    "name": "MoonPhase",
+    "description": "This extension puts a Moon phase icon in the panel.",
+    "version": 1,
+    "shell-version": [ "43.2" ],
+    "url": ""
+}
