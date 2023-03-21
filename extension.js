@@ -2,93 +2,70 @@
 
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const St = imports.gi.St;
+const Main = imports.ui.main;
 
-const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const Moon = Me.imports.lunarphase;
 
 
-// We'll extend the Button class from Panel Menu so we can do some setup in
-// the init() function.
-var ExampleIndicator = GObject.registerClass(
-    {GTypeName: 'ExampleIndicator'},
-    class ExampleIndicator extends PanelMenu.Button {
+class Extension {
 
-        _init() {
-            super._init(0.0, `${Me.metadata.name} Indicator`, false);
-
-            this.icon = new St.Icon({
-                style_class: 'system-status-icon'
-            });
-            this.updateIcon();
-            this.add_child(this.icon);
-
-            this.menuItem = new PopupMenu.PopupMenuItem('Loading...', false);
-            this.menu.addMenuItem(this.menuItem);
-            this.updateLabel();
-
-            GLib.timeout_add_seconds(
-                GLib.PRIORITY_DEFAULT,
-                3600,
-                this.update.bind(this)
-            );
-        }
-
-        update() {
-            this.updateIcon();
-            this.updateLabel();
-            return GLib.SOURCE_CONTINUE;
-        }
-
-        updateLabel() {
-            let phase = Moon.getLunarPhase();
-            this.menuItem.label.text = `Moon phase: ${phase}`;
-        }
-
-        updateIcon() {
-            let s = Moon.getPhaseNumber();
-            let iconPath = `${Me.path}/icons/${s}.png`;
-            let gicon = Gio.icon_new_for_string(`${iconPath}`);
-            this.icon.gicon = gicon;
-        };
+    constructor() {
+        this._indicator = null;
     }
-)
 
 
-// We're going to declare `indicator` in the scope of the whole script so it can
-// be accessed in both `enable()` and `disable()`
-var indicator = null;
+    update() {
+        this.updateIcon();
+        return GLib.SOURCE_CONTINUE;
+    }
 
 
-function init() {
-    log(`initializing ${Me.metadata.name} version ${Me.metadata.version}`);
-}
+    updateIcon() {
+        let s = Moon.getPhaseNumber();
+        let iconPath = `${Me.path}/icons/${s}.png`;
+        let gicon = Gio.icon_new_for_string(`${iconPath}`);
+        this._indicator.icon.gicon = gicon;
+    }
 
 
-function enable() {
-    log(`enabling ${Me.metadata.name} version ${Me.metadata.version}`);
+    enable() {
+        log(`enabling ${Me.metadata.name}`);
 
-    indicator = new ExampleIndicator();
+        let indicatorName = `${Me.metadata.name} Indicator`;
 
-    // The `main` import is an example of file that is mostly live instances of
-    // objects, rather than reusable code. `Main.panel` is the actual panel you
-    // see at the top of the screen.
-    Main.panel.addToStatusArea(`${Me.metadata.name} Indicator`, indicator);
-}
+        this._indicator = new PanelMenu.Button(0.0, indicatorName, false);
 
+        this._indicator.icon = new St.Icon({style_class: 'system-status-icon'});
+        this.updateIcon();
+        this._indicator.add_child(this._indicator.icon);
 
-function disable() {
-    log(`disabling ${Me.metadata.name} version ${Me.metadata.version}`);
+        Main.panel.addToStatusArea(indicatorName, this._indicator);
+
+        GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            3600,
+            this.update.bind(this)
+        );
+    }
+
 
     // REMINDER: It's required for extensions to clean up after themselves when
     // they are disabled. This is required for approval during review!
-    if (indicator !== null) {
-        indicator.destroy();
-        indicator = null;
+    disable() {
+        log(`disabling ${Me.metadata.name}`);
+
+        this._indicator.destroy();
+        this._indicator = null;
     }
+}
+
+
+function init() {
+    log(`initializing ${Me.metadata.name}`);
+
+    return new Extension();
 }
