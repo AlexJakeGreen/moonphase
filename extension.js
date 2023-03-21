@@ -12,6 +12,7 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const Moon = Me.imports.lunarphase;
 
+
 // We'll extend the Button class from Panel Menu so we can do some setup in
 // the init() function.
 var ExampleIndicator = GObject.registerClass(
@@ -33,7 +34,7 @@ var ExampleIndicator = GObject.registerClass(
 
             GLib.timeout_add_seconds(
                 GLib.PRIORITY_DEFAULT,
-                1,
+                3600,
                 this.update.bind(this)
             );
         }
@@ -41,6 +42,7 @@ var ExampleIndicator = GObject.registerClass(
         update() {
             this.updateIcon();
             this.updateLabel();
+            return GLib.SOURCE_CONTINUE;
         }
 
         updateLabel() {
@@ -53,7 +55,6 @@ var ExampleIndicator = GObject.registerClass(
             let iconPath = `${Me.path}/icons/${s}.png`;
             let gicon = Gio.icon_new_for_string(`${iconPath}`);
             this.icon.gicon = gicon;
-            return GLib.SOURCE_CONTINUE;
         };
     }
 )
