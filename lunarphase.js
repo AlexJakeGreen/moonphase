@@ -66,3 +66,5 @@ function getPhaseNumber(date = new Date()) {
         return 7;
     return 0;
 }
+
+export { getPhaseNumber }

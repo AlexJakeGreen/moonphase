@@ -1,22 +1,14 @@
-'use strict';
 
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const St = imports.gi.St;
-const Main = imports.ui.main;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const PanelMenu = imports.ui.panelMenu;
-const Moon = Me.imports.lunarphase;
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as Moon from './lunarphase.js' ;
+const { Gio, GLib, St } = imports.gi;
 
 
-class Extension {
+export default class Moonphase extends Extension {
 
-    constructor() {
-        this._indicator = null;
-    }
-
+    _indicator = null;
 
     update() {
         this.updateIcon();
@@ -26,17 +18,14 @@ class Extension {
 
     updateIcon() {
         let s = Moon.getPhaseNumber();
-        let iconPath = `${Me.path}/icons/${s}.png`;
-        let gicon = Gio.icon_new_for_string(`${iconPath}`);
+        let iconPath = `${this.path}/icons/${s}.png`;
+        let gicon = Gio.icon_new_for_string(iconPath);
         this._indicator.icon.gicon = gicon;
     }
 
 
     enable() {
-        log(`enabling ${Me.metadata.name}`);
-
-        let indicatorName = `${Me.metadata.name} Indicator`;
-
+        let indicatorName = `Moonphase`;
         this._indicator = new PanelMenu.Button(0.0, indicatorName, false);
 
         this._indicator.icon = new St.Icon({style_class: 'system-status-icon'});
@@ -53,19 +42,8 @@ class Extension {
     }
 
 
-    // REMINDER: It's required for extensions to clean up after themselves when
-    // they are disabled. This is required for approval during review!
     disable() {
-        log(`disabling ${Me.metadata.name}`);
-
         this._indicator.destroy();
         this._indicator = null;
     }
-}
-
-
-function init() {
-    log(`initializing ${Me.metadata.name}`);
-
-    return new Extension();
 }
